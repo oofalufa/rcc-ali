@@ -12,6 +12,10 @@ int distanceToCounts(float distance){
     takes in distance as a float
     returns integer
     */
+   float rotations = distance/(2*3.14*WHEEL_RADIUS);
+   float counts_f = rotations*COUNTS_PER_ROTATION;
+   int counts = (int)counts_f;
+   return counts;
 
     //converts distance to number of rotations
     //converts number of rotations to number of counts
@@ -24,6 +28,7 @@ float hertz_to_s(int hertz) {
     converts sampling frequency (hertz) to seconds
     returns as a float
     */
+   return 1/(float)hertz;
 }
 
 int64_t hertz_to_us(int hertz){
@@ -31,6 +36,7 @@ int64_t hertz_to_us(int hertz){
     converts sampling frequency (hertz) to microseconds
     returns as integer
     */
+   return 1e6/hertz;
 }
 
 int main() {
@@ -62,7 +68,7 @@ int main() {
 
     //because of ~physics~ may need to adjust
     //note: this is a positive rotation about the z-axis
-    float deg_spin = 90.0;
+    float deg_spin = -75.0;
 
     //use bool to stop until RESET
     bool stop = false; 
@@ -77,16 +83,24 @@ int main() {
         //if button pressed, spin!
         if(!gpio_get(RCC_PUSHBUTTON)){
             //note: need to make sure spinning positively around z axis
-            MotorPower(&motors, /*left*/, /*right*/); 
+            MotorPower(&motors, 50, 0); 
+          
         }
 
         //update current time
-
+        current_time = time_us_64();
+        if((current_time - previous_time)>= dt_us){
+            imu.update_pico();
+            angvel_z = imu.getAngVelZ();
+            angle_pos += angvel_z*dt_s;
+            previous_time = current_time;
+        }
         //if difference between current time and previous time is long enough
             //get IMU data
             //sum area of rectangles aka integrate (units are seconds)
             //make previous time the same as current time
         
+          cout << deg_spin << '/n' << " | ";
 
         //check if we spun long enough
         if(angle_pos >= deg_spin){
@@ -95,6 +109,7 @@ int main() {
 
         if(stop){
             MotorPower(&motors, 0,0); //stop until RESET
+            sleep_ms(100000);
         }
     }
 }
