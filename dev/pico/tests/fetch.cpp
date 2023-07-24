@@ -27,7 +27,7 @@ int distanceToCounts(float distance){
 float countsTodistance(int counts){
     //takes in counts //
 
-    distanceM = counts * .0062
+    distanceM = counts * .0062;
     //converts distance to number of rotations
     //converts number of rotations to number of counts
     //round to whole counts
@@ -48,7 +48,7 @@ int main()
     }
     
      Motor motors;
-    MotorInit(&motors, RCC_ENB, RCC_ENA, 1000);
+    MotorInit(&motors, RCC_ENA, RCC_ENB, 1000);
     MotorsOn(&motors);
 
     cyw43_arch_gpio_put(0, 1); //turns on led
@@ -66,7 +66,10 @@ int main()
         sleep_ms(100);
 
         if(dist > 300){
-            MotorPower(&motors, 67, 70);
+            MotorPower(&motors, 64, 70);
+        }
+        else{
+            MotorPower(&motors, -67, -70);
         }
     }
 }

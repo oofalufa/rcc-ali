@@ -101,5 +101,6 @@ endmacro()
 # Lessons
 make_exec(helloworld lessons/01/helloworld.cpp)
 # make_exec(debug lessons/01/debug.cpp)
-make_exec(integrator challenges/04-sensor2/in-class-example/integrator.cpp)
+make_exec(smtest challenges/smtest.cpp)
 make_exec(fetch tests/fetch.cpp)
+make_exec(searchandtravel challenges/searchandtravel.cpp)
