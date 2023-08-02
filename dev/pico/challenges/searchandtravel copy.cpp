@@ -1,10 +1,11 @@
 #include "rcc_stdlib.h"
 using namespace std;
 
-//define global constants 
 #define WHEEL_RADIUS 0.04 //meters
 #define COUNTS_PER_ROTATION 40 
 #define IMU_FREQ 500 //Hz
+
+
 
 int distanceToCounts(float distance){
     /*
@@ -12,23 +13,25 @@ int distanceToCounts(float distance){
     takes in distance as a float
     returns integer
     */
+   float rotations = distance/(2*3.14*WHEEL_RADIUS);
+   float counts_f = rotations*COUNTS_PER_ROTATION;
+   int counts = (int)counts_f;
+   return counts;
 
     //converts distance to number of rotations
-    float rotations = distance/(2*3.14*WHEEL_RADIUS);
     //converts number of rotations to number of counts
-    float counts_f = rotations*COUNTS_PER_ROTATION;
     //round to whole counts
-    int counts = (int)counts_f;
     //return counts as an integer
-    return counts;
 }
+
+
 
 float hertz_to_s(int hertz) {
     /*
     converts sampling frequency (hertz) to seconds
     returns as a float
     */
-    return 1/(float)hertz;
+   return 1/(float)hertz;
 }
 
 int64_t hertz_to_us(int hertz){
@@ -36,32 +39,37 @@ int64_t hertz_to_us(int hertz){
     converts sampling frequency (hertz) to microseconds
     returns as integer
     */
-    return 1e6/hertz; 
+   return 1e6/hertz;
 }
 
+
+
 int main(void){
- 
+
     int servocount = 0;
     int bestservo = 0;
-    uint testval = 10000;
-    uint bestval = 10000;
-    int DegreeOfObject = 0;
-
+    int testval = 10000;
+    int bestval = 10000;
+    float DegreeOfObject = 0;
+    int bool_move = 0;
     stdio_init_all();
     rcc_init_potentiometer();
     sleep_ms(1000);
     Servo s3;
-    rcc_init_i2c(); //setup i2c
     VL53L0X lidar;
     rcc_init_lidar(&lidar);
 
+
+    stdio_init_all();
+    sleep_ms(1500);
     cyw43_arch_init();
     cyw43_arch_gpio_put(0, 1); //turns on led
 
+    rcc_init_i2c(); //setup i2c
     rcc_init_pushbutton(); //setup button
 
     Motor motors; //struct setup
-    MotorInit(&motors, RCC_ENA, RCC_ENB, 20000); //setup 
+    MotorInit(&motors, RCC_ENA, RCC_ENB, 1000); //setup 
     MotorsOn(&motors); //enable PWM
 
     MPU6050 imu; //class setup
@@ -79,18 +87,14 @@ int main(void){
     int64_t previous_time = time_us_64(); 
 
 
-    //because of ~physics~ may need to adjust
-    //note: this is a positive rotation about the z-axis
-    float deg_spin = 90.0;
+    //use bool to stop until RESET
+    bool stop = false; 
 
-    bool stop = false; //use to stop until RESET
-
-    
-    cyw43_arch_gpio_put(0, true);
 
     ServoInit(&s3, 18, false, 50); 
     ServoOn(&s3);
     ServoPosition(&s3, 0);
+    sleep_ms(2000);
     // compares servo postions on lidar to find shotest distance 
     while (servocount !=101) {
         ServoPosition(&s3, servocount);
@@ -100,55 +104,32 @@ int main(void){
             bestval = testval;
             bestservo = servocount;
         }
-        sleep_ms(100); 
+        sleep_ms(100);
         servocount++;
-        cout << "dist:" << dist << "testval:" << testval << "bestval:" << bestval << '\n';
+        cout<< dist << testval << bestval << '\n';
     }
 
     DegreeOfObject = bestservo * 1.8 -90;
-    deg_spin = DegreeOfObject;
-    ServoPosition(&s3, 50);
+    float deg_spin = DegreeOfObject;
+    bool_move = 1; 
 
-   while(true) 
+    while(bool_move = 1) 
     {
-        uint16_t dist = getFastReading(&lidar);
-
-        //if button pressed, spin!
-       
-        cout << "degree of object:  " << DegreeOfObject << "  angel pos:   " << angle_pos << '\n';
-
-        if( dist > 200){
-        if(!angle_pos >= deg_spin){
-        if (deg_spin < 0 ){
-         MotorPower(&motors, 90, 0); 
-
-        }
-        if (deg_spin > 0 ){
-         MotorPower(&motors, 0, 90); 
-
-        }
-        }
-        }else{
-            MotorPower(&motors, 0, 0);
-        }
-
-
+        cout<<deg_spin << deg_spin << DegreeOfObject << '\n';
+        MotorPower(&motors, 50, 0); 
+    
         //update current time
-        current_time = time_us_64(); 
-
-        //if difference between current time and previous time is long enough
-        if((current_time - previous_time) >= dt_us){ 
-            //get IMU data
-            imu.update_pico(); 
-            angvel_z = imu.getAngVelZ(); //deg per sec
-            //sum area of rectangles aka integrate (units are seconds)
-            angle_pos += angvel_z*dt_s; 
-            //make previous time the same as current time
-            previous_time = current_time; 
+        current_time = time_us_64();
+        if((current_time - previous_time)>= dt_us){
+            imu.update_pico();
+            angvel_z = imu.getAngVelZ();
+            angle_pos += angvel_z*dt_s;
+            previous_time = current_time;
         }
-
-        // cout << "dt_s" << dt_s << " dt_us"<< dt_us<< " pos" <<angle_pos << '\n';
-
+        //if difference between current time and previous time is long enough
+            //get IMU data
+            //sum area of rectangles aka integrate (units are seconds)
+            //make previous time the same as current time
         //check if we spun long enough
         if(angle_pos >= deg_spin){
             stop = true;
@@ -157,5 +138,7 @@ int main(void){
         if(stop){
             MotorPower(&motors, 0,0); //stop until RESET
         }
-    }
 }
+}
+
+

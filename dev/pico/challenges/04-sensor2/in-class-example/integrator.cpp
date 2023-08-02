@@ -12,15 +12,15 @@ int distanceToCounts(float distance){
     takes in distance as a float
     returns integer
     */
-   float rotations = distance/(2*3.14*WHEEL_RADIUS);
-   float counts_f = rotations*COUNTS_PER_ROTATION;
-   int counts = (int)counts_f;
-   return counts;
 
     //converts distance to number of rotations
+    float rotations = distance/(2*3.14*WHEEL_RADIUS);
     //converts number of rotations to number of counts
+    float counts_f = rotations*COUNTS_PER_ROTATION;
     //round to whole counts
+    int counts = (int)counts_f;
     //return counts as an integer
+    return counts;
 }
 
 float hertz_to_s(int hertz) {
@@ -28,7 +28,7 @@ float hertz_to_s(int hertz) {
     converts sampling frequency (hertz) to seconds
     returns as a float
     */
-   return 1/(float)hertz;
+    return 1/(float)hertz;
 }
 
 int64_t hertz_to_us(int hertz){
@@ -36,7 +36,7 @@ int64_t hertz_to_us(int hertz){
     converts sampling frequency (hertz) to microseconds
     returns as integer
     */
-   return 1e6/hertz;
+    return 1e6/hertz; 
 }
 
 int main() {
@@ -66,12 +66,12 @@ int main() {
     int64_t current_time = time_us_64(); 
     int64_t previous_time = time_us_64(); 
 
+
     //because of ~physics~ may need to adjust
     //note: this is a positive rotation about the z-axis
-    float deg_spin = -75.0;
+    float deg_spin = 90.0;
 
-    //use bool to stop until RESET
-    bool stop = false; 
+    bool stop = false; //use to stop until RESET
 
     //this blinks the led so we know it's done calibrating
     cyw43_arch_gpio_put(0, 0); //turns off led
@@ -83,24 +83,24 @@ int main() {
         //if button pressed, spin!
         if(!gpio_get(RCC_PUSHBUTTON)){
             //note: need to make sure spinning positively around z axis
-            MotorPower(&motors, 50, 0); 
-          
+            MotorPower(&motors, -75, 60); //spinnnnnn~~
         }
 
         //update current time
-        current_time = time_us_64();
-        if((current_time - previous_time)>= dt_us){
-            imu.update_pico();
-            angvel_z = imu.getAngVelZ();
-            angle_pos += angvel_z*dt_s;
-            previous_time = current_time;
-        }
+        current_time = time_us_64(); 
+
         //if difference between current time and previous time is long enough
+        if((current_time - previous_time) >= dt_us){ 
             //get IMU data
+            imu.update_pico(); 
+            angvel_z = imu.getAngVelZ(); //deg per sec
             //sum area of rectangles aka integrate (units are seconds)
+            angle_pos += angvel_z*dt_s; 
             //make previous time the same as current time
-        
-          cout << deg_spin << '/n' << " | ";
+            previous_time = current_time; 
+        }
+
+        // cout << "dt_s" << dt_s << " dt_us"<< dt_us<< " pos" <<angle_pos << '\n';
 
         //check if we spun long enough
         if(angle_pos >= deg_spin){
@@ -109,7 +109,6 @@ int main() {
 
         if(stop){
             MotorPower(&motors, 0,0); //stop until RESET
-            sleep_ms(100000);
         }
     }
 }
