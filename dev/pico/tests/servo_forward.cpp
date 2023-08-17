@@ -19,8 +19,10 @@ int main(void)
     
     while(true)
     {   
-        sleep_ms(10);
         ServoPosition(&s3, 50);
-        cyw43_arch_gpio_put(0, !(cyw43_arch_gpio_get(0)));
+        sleep_ms(100);
+        ServoPosition(&s3, 0);
+        sleep_ms(1000);
+
     }
 }
