@@ -38,7 +38,7 @@ class JoyInterface():
 # w = WirelessController(WirelessInterface)
 j = JoyInterface()
 
-gamepadType = Gamepad.PS4
+gamepadType = Gamepad.PS3
 # Wait for a connection
 if not Gamepad.available():
     print('Please connect your gamepad...')
@@ -56,11 +56,12 @@ gamepad.addAxisMovedHandler(linearAxis ,j.linear_handler)
 gamepad.addAxisMovedHandler(angularAxis, j.angular_handler)
 
 try:
-    j.w.packet_receive_process()
+    # j.w.packet_receive_process()
     # while True:
     #     time.sleep(0.1)
     #     while j.w.has_packet():
     #         pin = j.w.get_packet()
     #         packet_receive_demux(pin)
+    pass
 finally:
     gamepad.disconnect()

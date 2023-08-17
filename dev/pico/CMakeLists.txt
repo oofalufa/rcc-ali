@@ -31,11 +31,19 @@ macro(make_exec exec_name exec_dir)
 
     target_compile_definitions(${exec_name} PUBLIC
                         # Set WIFI parameters with cmake cmd
-                            WIFI_SSID=\"${WIFI_SSID}\"
-                            WIFI_PASSWORD=\"${WIFI_PASSWORD}\"
-                            CYW43_HOST_NAME=\"${CYW43_HOST_NAME}\"
-                            PICO_IP=\"${PICO_IP}\"
-                            COMP_IP=\"${COMP_IP}\"
+                           # WIFI_SSID=\"${WIFI_SSID}\"
+                           # WIFI_PASSWORD=\"${WIFI_PASSWORD}\"
+                         #   CYW43_HOST_NAME=\"${CYW43_HOST_NAME}\"
+                           # PICO_IP=\"${PICO_IP}\"
+                           # COMP_IP=\"${COMP_IP}\"
+
+
+
+                          WIFI_SSID="Quasar"
+                            WIFI_PASSWORD="wifi21122113"
+                            CYW43_HOST_NAME="AS_PICO_RCC"
+                            PICO_IP="192.168.0.135"
+                            COMP_IP="192.168.0.246"
 
                         # Forced values for WIFI params
                             # WIFI_SSID=<"MY_WIFI_ROUTER"
@@ -83,6 +91,8 @@ endmacro()
 # make_exec(wireless tests/wireless_interface_test.cpp)
 # make_exec(wireless_background tests/wireless_background_test.cpp)
 make_exec(wheadless tests/wireless_headless_test.cpp)
+make_exec(wheadless_pid tests/wireless_headless_test_pid.cpp)
+
 # make_exec(mpu6050_test tests/mpu_6050_test.cpp)
 # make_exec(lidar_test tests/lidar_test.cpp)
 # make_exec(multi_i2c_test tests/multi_i2c_test.cpp)

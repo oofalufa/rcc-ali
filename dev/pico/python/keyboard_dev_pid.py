@@ -54,7 +54,7 @@ try:
            # print(speed)
             time.sleep(pollInterval)
 
-            f = Twist((speed * 100, speed *100))
+            f = Twist((speed * 100, steering *100))
             pout = f.pack()
             c.outbound.put(pout)   
 

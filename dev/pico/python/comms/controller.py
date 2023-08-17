@@ -68,9 +68,9 @@ class CommsController():
 		return self.inbound.get()
 	
 class WirelessInterface:
-	picoip = '192.168.0.104'
+	picoip = '192.168.0.135'
 	porttopico = 9900
-	computerip = '192.168.0.229'
+	computerip = '192.168.0.246'
 	porttocomputer = 9999
 	picohostname = 'PICOHOME'
 	computerhostname = 'localhost'
@@ -136,7 +136,7 @@ class WirelessController(CommsController):
 				self.inbound.put(p)
 			except AssertionError as e:
 				print(e)
-				# print(traceback.format_exc())
+				# print(traceback.formdwaaaaassssss;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;sssssat_exc())
 			except:
 				print('exception in inbound loop:')
 				print(traceback.format_exc())

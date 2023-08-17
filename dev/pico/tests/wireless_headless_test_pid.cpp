@@ -16,6 +16,12 @@ extern int BetweenVar;
 float power;
 float lpower;
 float rpower;
+float angle_mid;
+
+
+
+   PID_control_config_t config;
+    
 
 /// @brief Demux for the incoming packets
 /// @param p : A message in packet form
@@ -39,8 +45,8 @@ void packet_receiver(Packet p) {
         Twist twist(p);
         #ifdef RECV_DEBUG
             printf("[RECV_DEBUG]: %s", twist.repr().c_str());
-            lpower =twist.linear;
-            rpower = twist.angular;
+            power =twist.linear;
+            angle_mid = twist.angular;
         #endif
         break;
     }
@@ -150,6 +156,41 @@ int main()
     sleep_ms(1000);
 
     
+        //init i2c first
+    rcc_init_i2c(); 
+    MPU6050 imu;
+    imu.begin(i2c1);
+    imu.calibrate();
+    Left_Odom left;
+    Right_Odom right;
+    printf("AFTER ODOM");
+    
+    Motor motors;
+    MotorInit(&motors, RCC_ENA, RCC_ENB, 20000);
+    MotorsOn(&motors);
+    
+        //set values for config
+    config.kp = .57; 
+    config.ki = .05;
+    config.kd = 0;
+    config.ts = 0.01; // 1ms
+    config.sigma = 0.1;
+    config.lowerLimit = -20;
+    config.upperLimit = 20;
+    config.antiWindupEnabled = true;
+    
+
+    float angle = 0;
+        //create controller class based on config
+    PID_control controller(config);
+    
+        //motor power variables setup
+    int base_power = 80;
+    int output; 
+
+        //timing variables setup
+        uint32_t current_time, previous_time;
+        current_time = time_us_32();
    // gpio_init(motor_pin); 
     //gpio_set_dir(motor_pin, true);
     
@@ -163,9 +204,6 @@ int main()
     cyw43_arch_enable_sta_mode();
     init_cyw43(); //Attempts connection to wireless access point
 
-    Motor motors;
-    MotorInit(&motors, RCC_ENA, RCC_ENB, 1000);
-    MotorsOn(&motors);
 
     //Instantiate wireless interface class
     WirelessMsgInterface interface(COMP_IP, PICO_IP, TO_COMP_PORT, TO_PICO_PORT);
@@ -183,21 +221,52 @@ int main()
     address = ipaddr_ntoa(&interface.lwip_infra.pico_ip);
     printf("This PICO's IP address is: %s\n", address);
 
-    while(true)
-    {   
 
-       // gpio_put(motor_pin, true); //on
-       // gpio_put(motor_pin, false); //off
 
-        // Check if msg has come in, deserialize it, and take action dependent on which msg it is
-        interface.get_msg_timeout(&packet_receiver, 10000);
-        cout << "Power Val: " << lpower << "\n";
-        // Do other NON BLOCKING code here!
-        cout << address << "\n";
-        //cout << "HELLOOOOOOOOOO" << '\n';
-        MotorPower(&motors, lpower -5 , rpower);
-    }
+     while(true){
+            interface.get_msg_timeout(&packet_receiver, 10000);
+            //update current time
+            current_time = time_us_32();
 
+            // cout << 'hi' ;
+            //if config's timestep has passed
+            if((current_time - previous_time) >= config.ts*1e6){
+    
+                angle = angle_mid;
+                
+                //get data from sensors
+                imu.update_pico();
+                //calculate controller output:
+                    //first input is desired value
+                    //second input is actual value
+
+                angle += imu.getAngVelZ() * config.ts;
+
+                output = controller.pid(0.0, angle);
+    
+                //set motor power based on controller output
+                MotorPower(&motors, (power - output), (power + output));
+
+                //reset previous time
+                previous_time = current_time;
+            }
+        }
+
+
+    // while(true)
+    // {   
+
+    //    // gpio_put(motor_pin, true); //on
+    //    // gpio_put(motor_pin, false); //off
+
+    //     // Check if msg has come in, deserialize it, and take action dependent on which msg it is
+    //     interface.get_msg_timeout(&packet_receiver, 10000);
+    //     cout << "Power Val: " << lpower << "\n";
+    //     // Do other NON BLOCKING code here!
+    //     cout << address << "\n";
+    //     //cout << "HELLOOOOOOOOOO" << '\n';
+    //     MotorPower(&motors, lpower -5 , rpower);
+    // }
     // Exit program, deinit wireless module first
     cyw43_arch_deinit();
     return 0;
